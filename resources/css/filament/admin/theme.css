@@ -7,3 +7,6 @@
 @source '../../../../vendor/devonab/filament-easy-footer/resources/views/**/*';
 @source '../../../../vendor/awcodes/shout/resources/**/*.blade.php';
 @source '../../../../vendor/awcodes/filament-quick-create/resources/**/*.blade.php';
+@source '../../../../vendor/daikazu/filament-image-checkbox-group/resources/views/**/*.blade.php';
+@source '../../../../vendor/eightynine/filament-advanced-widgets/resources/views/**/*.blade.php';
+@source '../../../../vendor/daikazu/filament-image-checkbox-group/resources/views/**/*.blade.php';

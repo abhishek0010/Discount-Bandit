@@ -54,7 +54,7 @@ class LinkHelper
             str_contains($store_name, 'FlipKart') => Flipkart::prepare_url($link),
             str_contains($store_name, 'Fnac') => Fnac::prepare_url($link),
             str_contains($store_name, 'Homedepot') => Homedepot::prepare_url($link),
-            str_contains($store_name, 'Media Market') => Mediamarkt::prepare_url($link),
+            str_contains($store_name, 'Media Markt') => Mediamarkt::prepare_url($link),
             str_contains($store_name, 'Microless') => Microless::prepare_url($link),
             str_contains($store_name, 'Myntra') => Myntra::prepare_url($link),
             str_contains($store_name, 'Newegg') => Newegg::prepare_url($link),

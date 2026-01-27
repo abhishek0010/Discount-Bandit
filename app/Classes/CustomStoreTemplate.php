@@ -18,6 +18,7 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Illuminate\Support\Uri;
 
 class CustomStoreTemplate
 {
@@ -350,11 +351,20 @@ class CustomStoreTemplate
             return;
         }
 
-        $results = $this->dom->querySelectorAll($this->link->store->custom_settings['price_selectors']);
+        if (filled($this->link->store->custom_settings['price_selectors'])) {
+            $results = $this->dom->querySelectorAll($this->link->store->custom_settings['price_selectors']);
+            $attributes = ['content'];
 
-        $attributes = ['content'];
+            $this->get_results_for_key($results, $attributes, 'price');
 
-        $this->get_results_for_key($results, $attributes, 'price');
+            $this->product_data['price'] = (float) GeneralHelper::get_numbers_with_normalized_format(
+                GeneralHelper::get_numbers_only_with_dot_and_comma($this->product_data['price'])
+            );
+
+        }
+
+        if (! $this->product_data['price'] && $this->link->store->custom_settings['price_schema_key'])
+            $this->product_data['price'] = $this->search_for_custom_keys_and_get_values($this->link->store->custom_settings['price_schema_key']);
 
         $this->product_data['price'] = (float) GeneralHelper::get_numbers_with_normalized_format(
             GeneralHelper::get_numbers_only_with_dot_and_comma($this->product_data['price'])
@@ -453,4 +463,60 @@ class CustomStoreTemplate
 
         $history->save();
     }
+
+
+    public function search_for_custom_keys_and_get_values(string $key, array $current_schema = [])
+    {
+        if (blank($key) || blank($this->schema)) return null;
+
+        $key_parts = explode('.', $key);
+
+        $remaining_key_parts = $key_parts;
+
+        $shallow_schema = $current_schema ?: $this->schema;
+
+        // go through each key part and search the parth for it until we get a result
+        foreach ($key_parts as &$key_part) {
+
+            $remaining_key_parts = array_slice($remaining_key_parts, 1);
+
+            // check for case [sku=value]
+            if (preg_match('/^\[[^=]+=[^]]+\]$/', $key_part)) {
+
+                // check the schema key we want to access to compare its value to the value of get param of schema_key_value
+                [$schema_key, $schema_key_value] = Str::of($key_part)
+                    ->between('[', ']')
+                    ->explode('=');
+
+                $value_to_search = Uri::of($this->current_product_url)
+                    ->query()
+                    ->get($schema_key_value);
+
+                // if they are not the same, skip the current record, otherwise continue to the next key.
+                if (strtolower($current_schema[$schema_key]) != strtolower($value_to_search))
+                    return null;
+
+                continue;
+            }
+
+            if ($key_part == '*') {
+                // go through every record and return the first path that returns a value
+                foreach (data_get($shallow_schema, '*') as $single_record) {
+                    $value = $this->search_for_custom_keys_and_get_values(implode('.', $remaining_key_parts), $single_record);
+
+                    if (filled($value))
+                        return $value;
+                }
+            }
+
+            if (! isset($shallow_schema[$key_part]))
+                return null;
+
+            // check if they key exists to go through it, if we reach to a point where there isn't a child, return the result back
+            $shallow_schema = $shallow_schema[$key_part];
+        }
+
+        return $shallow_schema;
+    }
+
 }

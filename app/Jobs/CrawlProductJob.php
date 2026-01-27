@@ -69,7 +69,7 @@ class CrawlProductJob implements ShouldQueue
             str_contains($link->store->name, 'Fnac') => new Fnac($link),
             str_contains($link->store->name, 'FlipKart') => new Flipkart($link),
             str_contains($link->store->name, 'Homedepot') => new Homedepot($link),
-            str_contains($link->store->name, 'Media Market') => new Mediamarkt($link),
+            str_contains($link->store->name, 'Media Markt') => new Mediamarkt($link),
             str_contains($link->store->name, 'Microless') => new Microless($link),
             str_contains($link->store->name, 'Myntra') => new Myntra($link),
             str_contains($link->store->name, 'Next Hardware') => new Nexths($link),

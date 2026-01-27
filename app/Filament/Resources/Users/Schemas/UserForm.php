@@ -11,6 +11,7 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Colors\Color;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
 
 class UserForm
@@ -43,8 +44,26 @@ class UserForm
                 Section::make('Notification Settings')
                     ->columns(3)
                     ->columnSpanFull()
+                    ->live(300)
                     ->schema([
                         TextInput::make('notification_settings.ntfy_url')
+                            ->afterStateUpdated(function ($state) {
+                                if (blank($state)) {
+                                    return;
+                                }
+
+                                $ntfy_url = Str::of($state)
+                                    ->remove(['https://', 'http://'])
+                                    ->explode('/');
+
+                                if (count($ntfy_url) ==1) {
+                                    Notification::make()
+                                        ->title('you are missing the topic in ntfy url')
+                                        ->body('the url should be something like https://myntfy.com/topic')
+                                        ->danger()
+                                        ->send();
+                                }
+                            })
                             ->url(),
 
                         TextInput::make('notification_settings.ntfy_auth_username'),
@@ -92,10 +111,10 @@ class UserForm
                             ->live()
                             ->afterStateUpdated(function ($state) {
 
-                                if (!$state)
+                                if (! $state)
                                     return;
 
-                                if  (! config('settings.exchange_rate_api_key')){
+                                if (! config('settings.exchange_rate_api_key')) {
                                     Notification::make()
                                         ->title('Currency Selected without exchange Rate API')
                                         ->body('Please set exchange rate api key in the environment file, Otherwise you will get wrong errors across the app')

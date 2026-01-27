@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\ProductStatusEnum;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreProductRequest extends FormRequest
 {
@@ -11,7 +13,7 @@ class StoreProductRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -22,7 +24,12 @@ class StoreProductRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'name' => ['nullable', 'string'],
+            'status' => ['required', Rule::enum(ProductStatusEnum::class)],
+            'is_favourite' => ['required', 'boolean'],
+            'snoozed_until' => ['nullable', 'date'],
+            'remove_link_if_out_of_stock_for_x_days' => ['nullable', 'integer'],
+
         ];
     }
 }

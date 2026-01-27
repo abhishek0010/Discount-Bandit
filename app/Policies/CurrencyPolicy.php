@@ -2,12 +2,19 @@
 
 namespace App\Policies;
 
+use App\Enums\RoleEnum;
 use App\Models\Currency;
 use App\Models\User;
 use Illuminate\Auth\Access\Response;
+use Illuminate\Support\Facades\Auth;
 
 class CurrencyPolicy
 {
+    public function before()
+    {
+        return Auth::user()->role == RoleEnum::Admin;
+    }
+
     /**
      * Determine whether the user can view any models.
      */

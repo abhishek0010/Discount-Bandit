@@ -3,6 +3,7 @@
 namespace App\Providers\Filament;
 
 use App\Enums\RoleEnum;
+use App\Filament\Forms\CommunityStoresForm;
 use App\Filament\Forms\ImportForm;
 use App\Filament\Pages\Auth\Login;
 use App\Filament\Pages\Auth\Register;
@@ -11,6 +12,7 @@ use App\Filament\Resources\Stores\StoreResource;
 use Asmit\ResizedColumn\ResizedColumnPlugin;
 use Awcodes\QuickCreate\QuickCreatePlugin;
 use Boquizo\FilamentLogViewer\FilamentLogViewerPlugin;
+use CharrafiMed\GlobalSearchModal\GlobalSearchModalPlugin;
 use Devonab\FilamentEasyFooter\EasyFooterPlugin;
 use Filament\Actions\Action;
 use Filament\Http\Middleware\Authenticate;
@@ -22,6 +24,7 @@ use Filament\PanelProvider;
 use Filament\Support\Assets\Css;
 use Filament\Support\Assets\Js;
 use Filament\Support\Colors\Color;
+use Filament\Support\Enums\Platform;
 use Filament\Support\Enums\Width;
 use Filament\Widgets\AccountWidget;
 use Filament\Widgets\FilamentInfoWidget;
@@ -52,6 +55,7 @@ class AdminPanelProvider extends PanelProvider
                     ->url(fn (): string => route('filament.admin.resources.users.edit', ['record' => Auth::id()]))
                     ->icon('heroicon-o-cog-6-tooth'),
 
+                CommunityStoresForm::configure(),
                 ImportForm::configure(),
 
             ])
@@ -64,9 +68,9 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
-//            ->pages([
-//                Dashboard::class,
-//            ])
+            ->pages([
+                \App\Filament\Pages\Dashboard::class,
+            ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
             ->widgets([
                 AccountWidget::class,
@@ -117,6 +121,14 @@ class AdminPanelProvider extends PanelProvider
                         StoreResource::class,
                     ]),
                 FilamentApexChartsPlugin::make(),
-            ]);
+                GlobalSearchModalPlugin::make()
+                    ->localStorageMaxItemsAllowed(20),
+            ])
+            ->globalSearchKeyBindings(['command+k', 'ctrl+k'])
+            ->globalSearchFieldSuffix(fn (): ?string => match (Platform::detect()) {
+                Platform::Windows, Platform::Linux => 'CTRL+K',
+                Platform::Mac => '⌘K',
+                default => null,
+            });
     }
 }

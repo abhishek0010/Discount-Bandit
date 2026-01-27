@@ -22,7 +22,7 @@ class URLParserService
 
     private Uri $parsed_url;
 
-    public function setup(string $url): void
+    public function setup(?string $url = null): void
     {
         if (! $url)
             return;
