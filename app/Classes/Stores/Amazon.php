@@ -138,11 +138,15 @@ class Amazon extends StoreTemplate
             '#sns-base-price span.a-price-whole',
             '#corePriceDisplay_desktop_feature_div span.a-price-whole',
             '#corePrice_feature_div span.a-price-whole',
+            '#apex_offerDisplay_desktop span.a-price-whole',
+            '#corePriceDisplay_desktop_feature_div span.a-price-whole',
         ];
         $fractional_price_selectors = [
             '#sns-base-price span.a-price-fraction',
             '#corePriceDisplay_desktop_feature_div span.a-price-fraction',
             '#corePrice_feature_div span.a-price-fraction',
+            '#apex_offerDisplay_desktop span.a-price-fraction',
+            '#corePriceDisplay_desktop_feature_div span.a-price-fraction',
         ];
 
         $results_whole = $this->dom->querySelectorAll(implode(',', $whole_price_selectors));
@@ -150,7 +154,6 @@ class Amazon extends StoreTemplate
 
         $only_whole = GeneralHelper::get_numbers_only($results_whole[0]?->textContent);
         $this->product_data['price'] = (float) "{$only_whole}.{$results_fraction[0]?->textContent}";
-
     }
 
     public function get_used_price(): void
