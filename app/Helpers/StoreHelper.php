@@ -12,16 +12,16 @@ class StoreHelper
     {
 
         // validate that search is not empty and only english alphabetic characters
-        if ((blank($search) || ! preg_match('/^[a-zA-Z]+$/', $search)) && blank($letter)) return [];
+        if (blank($search) && (blank($letter) || $letter == "-1")) return [];
 
-        $to_search = strtolower($search ?? $letter);
+        if (strlen($search) > 1)
+            $letter = substr($search, 0, 1);
 
-        if ($to_search == '-1') return [];
 
         // check the github repo for the first letter of the search
         $github_link = config('settings.github_community_store_repo');
 
-        $stores_available = Http::get($github_link.$to_search)
+        $stores_available = Http::get($github_link. strtolower($letter))
             ->json();
 
         if (array_key_exists('message', $stores_available)) {
@@ -32,6 +32,11 @@ class StoreHelper
                 ->send();
 
             return [];
+        }
+
+        // filter store by search
+        if (strlen($search) > 1) {
+            $stores_available = array_filter($stores_available, fn ($store) => Str::contains($store['name'], $search, true));
         }
 
         $formatted_stores = array_map(fn ($store) => [

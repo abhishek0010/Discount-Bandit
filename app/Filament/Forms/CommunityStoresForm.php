@@ -63,7 +63,6 @@ class CommunityStoresForm
                                 ->options(array_combine(range('A', 'Z'), range('A', 'Z')))
                                 ->default(-1)
                                 ->inline()
-                                ->required()
                                 ->reactive(),
 
                             // Visual store selection using image checkboxes
