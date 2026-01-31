@@ -139,14 +139,14 @@ class Amazon extends StoreTemplate
             '#corePriceDisplay_desktop_feature_div span.a-price-whole',
             '#corePrice_feature_div span.a-price-whole',
             '#apex_offerDisplay_desktop span.a-price-whole',
-            '#corePriceDisplay_desktop_feature_div span.a-price-whole',
+            '#dynamic-aod-ingress-box span.a-price-whole',
         ];
         $fractional_price_selectors = [
             '#sns-base-price span.a-price-fraction',
             '#corePriceDisplay_desktop_feature_div span.a-price-fraction',
             '#corePrice_feature_div span.a-price-fraction',
             '#apex_offerDisplay_desktop span.a-price-fraction',
-            '#corePriceDisplay_desktop_feature_div span.a-price-fraction',
+            '#dynamic-aod-ingress-box span.a-price-fraction',
         ];
 
         $results_whole = $this->dom->querySelectorAll(implode(',', $whole_price_selectors));
