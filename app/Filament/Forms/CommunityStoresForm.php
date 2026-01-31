@@ -25,7 +25,6 @@ use Illuminate\Support\Facades\Auth;
  *
  * The form integrates with GitHub-hosted community store data and dispatches background jobs
  * to process the selected stores and add them to the discount system.
- *
  */
 class CommunityStoresForm
 {
@@ -110,7 +109,7 @@ class CommunityStoresForm
                     Step::make('Select Domains')
                         ->key('select-domains')
                         ->schema([
-                            Hidden::make('domains_selected_files'),
+                            Hidden::make('stores_selected_domains'),
 
                             // Domain selection with visual checkboxes
                             // Fetches available domains for the stores selected in previous step
@@ -127,7 +126,7 @@ class CommunityStoresForm
 
                                     $stores = StoreHelper::get_domains_for_stores($customStores);
 
-                                    $set('domains_selected_files', $stores);
+                                    $set('stores_selected_domains', $stores);
 
                                     return $stores;
                                 })
@@ -147,9 +146,12 @@ class CommunityStoresForm
             ->action(function ($data) {
                 // Process selected domains and dispatch background jobs
                 // Each job adds a store to the discount system with its logo from GitHub
-                foreach ($data['domains_selected_files'] as $domain) {
-                    $image_link = config('settings.github_community_store_gist_base').$domain['store'].'/logo.png';
-                    AddStoreToDiscountJob::dispatch($domain['path'], $image_link);
+
+                foreach ($data['domains_selected'] as $domain) {
+                    $current_domain = $data['stores_selected_domains'][$domain];
+
+                    $image_link = config('settings.github_community_store_gist_base').$current_domain['store'].'/logo.png';
+                    AddStoreToDiscountJob::dispatch($current_domain['path'], $image_link);
                 }
 
                 Notification::make()
