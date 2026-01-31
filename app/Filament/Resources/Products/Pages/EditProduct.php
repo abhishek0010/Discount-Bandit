@@ -43,7 +43,7 @@ class EditProduct extends EditRecord
 
     public function getTitle(): string|Htmlable
     {
-        return $this->record->name;
+        return $this->record->name ?? 'Edit';
     }
 
 }
