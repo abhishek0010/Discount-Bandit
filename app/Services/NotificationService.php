@@ -32,7 +32,7 @@ class NotificationService
 
         $this->old_link->loadMissing(['store', 'store.currency']);
 
-        $this->current_rate = ($user->currency) ? $user->currency->rate / $this->old_link->store->currency->rate : 1;
+        $this->current_rate = ($user->currency && $user->currency->rate) ? $user->currency->rate / $this->old_link->store->currency->rate : 1;
 
         $this->new_price = $this->new_link->price * $this->current_rate;
         $this->old_price = $this->old_link->price * $this->current_rate;
