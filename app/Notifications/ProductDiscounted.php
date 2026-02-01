@@ -5,6 +5,7 @@ namespace App\Notifications;
 use App\Models\Link;
 use App\Models\RssFeedItem;
 use App\Models\User;
+use App\NotificationsChannels\AppriseChannel;
 use App\NotificationsChannels\GotifyChannel;
 use App\NotificationsChannels\NtfyChannel;
 use Illuminate\Notifications\Notification;
@@ -78,6 +79,10 @@ class ProductDiscounted extends Notification
             $channels[] = GotifyChannel::class;
         }
 
+        if ($notifiable->notification_settings['apprise_url']) {
+            $channels[] = AppriseChannel::class;
+        }
+
         if ($notifiable->notification_settings['enable_rss_feed']) {
             RssFeedItem::create([
                 'user_id' => $notifiable->id,
@@ -101,11 +106,11 @@ class ProductDiscounted extends Notification
     {
 
         $content = [
-            'title' => "For Just $this->price -  Discount For ".Str::words($this->product_name, 5),
+            "title" => $this->notification_title,
             'body' => $this->notification_text.
                 "----------------<br>
                 Product URL: . {$this->product_url}",
-            'attach' => [$this->image],
+            'attach' => [$this->product_image],
             'format' => 'html',
         ];
 
