@@ -273,6 +273,8 @@ class CustomStoreTemplate
         $attributes = ['content', 'src', 'href'];
 
         $this->get_results_for_key($results, $attributes, 'image');
+
+        GeneralHelper::append_domain_to_url_if_missing($this->product_data['image'], $this->link->store->domain);
     }
 
     public function get_total_reviews()
@@ -390,9 +392,33 @@ class CustomStoreTemplate
 
         $results = $this->dom->querySelectorAll($this->link->store->custom_settings['stock_selectors']);
 
-        $attributes = ['content'];
+        $result_exists = $results->length > 0;
 
-        $this->get_results_for_key($results, $attributes, 'stock_selectors');
+        // if the user didn't pass any value to compare against and searching only for existence
+        if (! array_key_exists('stock_value_to_search', $this->link->store->custom_settings)
+            || ! $this->link->store->custom_settings['stock_value_to_search']) {
+            $this->product_data['is_in_stock'] = (! array_key_exists('in_or_out_of_stock_selector_type', $this->link->store->custom_settings) ||
+                $this->link->store->custom_settings['in_or_out_of_stock_selector_type'])
+                ? $result_exists
+                : ! $result_exists;
+        } else {
+            // check if value is correct or not
+
+            $string_is_correct = Str::is($this->link->store->custom_settings['stock_value_to_search'], trim($results[0]->textContent), true);
+            $searching_for_in_stock = $this->link->store->custom_settings['in_or_out_of_stock_selector_type'];
+
+            // did this as it's easier to read and understand.
+            if ($string_is_correct && $searching_for_in_stock) {
+                $this->product_data['is_in_stock'] = true;
+            } elseif ($string_is_correct && ! $searching_for_in_stock) {
+                $this->product_data['is_in_stock'] = false;
+            } elseif (! $string_is_correct && $searching_for_in_stock) {
+                $this->product_data['is_in_stock'] = false;
+            } elseif (! $string_is_correct && ! $searching_for_in_stock) {
+                $this->product_data['is_in_stock'] = true;
+            }
+        }
+
     }
 
     public function get_shipping_price() {}

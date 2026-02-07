@@ -50,6 +50,8 @@ class Store extends Model
         'custom_settings.shipping_price_selectors',
         'custom_settings.shipping_schema_key',
         'custom_settings.stock_selectors',
+        'custom_settings.in_or_out_of_stock_selector_type',
+        'custom_settings.stock_value_to_search',
         'custom_settings.stock_schema_key',
         'custom_settings.condition_selectors',
         'custom_settings.condition_schema_key',

@@ -14,6 +14,7 @@ use Filament\Schemas\Components\Wizard;
 use Filament\Schemas\Components\Wizard\Step;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 
 /**
  * Community Stores Form Configuration
@@ -53,6 +54,9 @@ class CommunityStoresForm
                             // Updates results dynamically as user types
                             TextInput::make('search')
                                 ->live(debounce: 600)
+                                ->afterStateUpdated(function ($state, $set) {
+                                    $set('letter', $state ? Str::upper(substr($state, 0, 1)) : -1);
+                                })
                                 ->label('Search for a store'),
 
                             // Generates A-Z buttons dynamically for quick filtering
