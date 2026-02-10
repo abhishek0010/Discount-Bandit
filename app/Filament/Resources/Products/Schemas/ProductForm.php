@@ -43,7 +43,7 @@ class ProductForm
                     ->columnSpan(1)
                     ->label("Snooze Notification Until"),
 
-                TextInput::make('max_notifications')
+                TextInput::make('max_notifications_daily')
                     ->label("Max Notification Sent Daily")
                     ->integer()
                     ->minValue(0)
