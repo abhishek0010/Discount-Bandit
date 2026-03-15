@@ -6,6 +6,8 @@ use Dom\HTMLDocument;
 use Exception;
 use HeadlessChromium\BrowserFactory;
 use HeadlessChromium\Exception\BrowserConnectionFailed;
+use HeadlessChromium\Exception\CommunicationException;
+use HeadlessChromium\Exception\NoResponseAvailable;
 use HeadlessChromium\Exception\OperationTimedOut;
 use HeadlessChromium\Page;
 use Illuminate\Support\Facades\Log;
@@ -27,12 +29,7 @@ class ChromiumCrawler
     ) {
         // path to the file to store websocket's uri
         $socketFile = '/tmp/chrome-php-demo-socket';
-
-        if (! file_exists($socketFile)) {
-            file_put_contents($socketFile, '');
-        }
-
-        $socket = file_get_contents($socketFile);
+        $lockFile = '/tmp/chrome-php-demo-socket.lock';
 
         $options = [
             //
@@ -64,28 +61,57 @@ class ChromiumCrawler
             'bypassCSP' => true,
         ];
 
-        try {
-            $browser = BrowserFactory::connectToBrowser($socket);
-        } catch (BrowserConnectionFailed|InvalidArgumentException $e) {
-            Log::info('New Chrome instance');
-            Log::info($e->getMessage());
-            $browserType = app()->isProduction() ? 'chromium' : null;
+        // Try connecting to an existing browser without locking first (fast path)
+        $socket = file_exists($socketFile) ? file_get_contents($socketFile) : '';
+        $browser = null;
 
-            // just in case there is a chromium process running on the server
-            Process::run("killall chromium");
-
-            // The browser was probably closed, start it again
-            $browser_factory = new BrowserFactory($browserType);
-
-            $browser = $browser_factory
-                ->createBrowser($options);
-            // save the uri to be able to connect again to the browser
-            file_put_contents($socketFile, $browser->getSocketUri(), LOCK_EX);
+        if ($socket) {
+            try {
+                $browser = BrowserFactory::connectToBrowser($socket);
+            } catch (BrowserConnectionFailed|InvalidArgumentException $e) {
+                // Connection failed, will acquire lock and retry below
+            }
         }
 
-        $page = $browser->createPage();
+        // If fast path failed, acquire exclusive lock to start a new browser
+        if (! $browser) {
+            $lockHandle = fopen($lockFile, 'c');
+            flock($lockHandle, LOCK_EX);
+
+            try {
+                // Re-read socket file — another process may have staexitrted the browser while we waited
+                $socket = file_exists($socketFile) ? file_get_contents($socketFile) : '';
+
+                if ($socket) {
+                    try {
+                        $browser = BrowserFactory::connectToBrowser($socket);
+                    } catch (BrowserConnectionFailed|InvalidArgumentException $e) {
+                        // Still can't connect, we need to start a new browser
+                    }
+                }
+
+                if (! $browser) {
+                    Log::info('New Chrome instance');
+                    $browserType = app()->isProduction() ? 'chromium' : null;
+
+                    // just in case there is a chromium process running on the server
+                    Process::run("killall chromium");
+
+                    // The browser was probably closed, start it again
+                    $browser_factory = new BrowserFactory($browserType);
+
+                    $browser = $browser_factory->createBrowser($options);
+                    // save the uri to be able to connect again to the browser
+                    file_put_contents($socketFile, $browser->getSocketUri(), LOCK_EX);
+                }
+            } finally {
+                flock($lockHandle, LOCK_UN);
+                fclose($lockHandle);
+            }
+        }
 
         try {
+            $page = $browser->createPage();
             $page->navigate($url)
                 ->waitForNavigation($page_event, $timeout_ms);
 
@@ -94,14 +120,22 @@ class ChromiumCrawler
             }
 
             $this->dom = HTMLDocument::createFromString($page->getHtml(), LIBXML_NOERROR);
-            $page->close();
+
+        } catch (CommunicationException $e) {
+            Log::error("Couldn't connect to the page");
+        } catch (NoResponseAvailable $e) {
+            Log::error("No response available");
         } catch (OperationTimedOut $e) {
             $this->dom = HTMLDocument::createFromString($page->getHtml(), LIBXML_NOERROR);
-            $page->close();
         } catch (Exception $exception) {
             Log::error("Crawling using chrome");
             Log::error($exception->getMessage());
-            $page->close();
+        }
+
+        try {
+            $page?->close();
+        } catch (CommunicationException $e) {
+            Log::error("Couldn't close the page");
         }
     }
 
