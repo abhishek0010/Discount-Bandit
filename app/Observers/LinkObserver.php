@@ -15,7 +15,7 @@ class LinkObserver
     {
         if (
             Auth::check() &&
-            Auth::user()->role == RoleEnum::Admin->value &&
+            Auth::user()->role == RoleEnum::User->value &&
             Auth::user()->other_settings['max_links'] &&
             Auth::user()->links()->count() >= Auth::user()->other_settings['max_links']
         ) {

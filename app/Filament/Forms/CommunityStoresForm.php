@@ -2,6 +2,7 @@
 
 namespace App\Filament\Forms;
 
+use App\Enums\RoleEnum;
 use App\Helpers\StoreHelper;
 use App\Jobs\AddStoreToDiscountJob;
 use Daikazu\FilamentImageCheckboxGroup\Forms\Components\ImageCheckboxGroup;
@@ -29,19 +30,16 @@ use Illuminate\Support\Str;
  */
 class CommunityStoresForm
 {
+    public static function allowed_to_access(): bool
+    {
+        return Auth::user()->role === RoleEnum::Admin;
+    }
+
     public static function configure()
     {
-        // Authorization check: prevent admin users from accessing this form
-        // (admins likely have different workflows or permissions)
-        if (Auth::user()?->role == 'admin') {
-            Notification::make()
-                ->title('You are not authorized to access this page')
-                ->danger()
-                ->send();
-        }
-
         return Action::make('add_community_stores')
             ->icon(Heroicon::BuildingStorefront)
+            ->authorize(fn () => self::allowed_to_access())
             ->schema([
                 Wizard::make([
 

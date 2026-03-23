@@ -41,7 +41,7 @@ class ProductDiscounted extends Notification
         public string $product_url = "",
     ) {
         $this->product_temp_link = URL::temporarySignedRoute("products.show", now()->addMinutes(15), ['product' => $this->product_id]);
-        $this->product_temp_snooze = URL::temporarySignedRoute("products.snooze", today()->endOfDay(), ['product' => $this->product_id]);
+        $this->product_temp_snooze = URL::temporarySignedRoute("products.snooze", today()->endOfDay(), ['productId' => $this->product_id]);
 
         $this->notification_title = "For Just {$this->currency_code} {$this->new_link->price} -  Discount For ".Str::words($this->product_name, 5);
         $this->notification_text = "{$this->product_name}, is at {$this->currency_code}{$this->new_link->price} <br>".
@@ -67,19 +67,19 @@ class ProductDiscounted extends Notification
     {
 
         $channels = [];
-        if ($notifiable->notification_settings['ntfy_url']) {
+        if (array_key_exists('ntfy_url', $notifiable->notification_settings) && $notifiable->notification_settings['ntfy_url']) {
             $channels[] = NtfyChannel::class;
         }
 
-        if ($notifiable->notification_settings['telegram_channel_id'] && $notifiable->notification_settings['telegram_bot_token']) {
+        if (array_key_exists('telegram_channel_id', $notifiable->notification_settings) && $notifiable->notification_settings['telegram_channel_id'] && $notifiable->notification_settings['telegram_bot_token']) {
             $channels[] = 'telegram';
         }
 
-        if ($notifiable->notification_settings['gotify_url']) {
+        if (array_key_exists('gotify_url', $notifiable->notification_settings) && $notifiable->notification_settings['gotify_url']) {
             $channels[] = GotifyChannel::class;
         }
 
-        if ($notifiable->notification_settings['apprise_url']) {
+        if (array_key_exists('apprise_url', $notifiable->notification_settings) && $notifiable->notification_settings['apprise_url']) {
             $channels[] = AppriseChannel::class;
         }
 
