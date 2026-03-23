@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\CrawlingMethodEnum;
+use App\Enums\StoreStatusEnum;
 use App\Observers\StoreObserver;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -64,6 +65,7 @@ class Store extends Model
             'custom_settings.crawling_method' => CrawlingMethodEnum::class,
             'allowed_params' => 'array',
             'are_params_allowed' => 'boolean',
+            'status' => StoreStatusEnum::class,
         ];
     }
 
