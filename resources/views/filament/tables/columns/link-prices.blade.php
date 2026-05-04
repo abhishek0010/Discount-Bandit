@@ -16,8 +16,17 @@
         <div>Best</div>
     </div>
 
+    @php
+        $days  = $column->getTable()->getLivewire()->tableFilters['no_price_update']['days'] ?? null;
+        $since = $days ? now()->subDays((int) $days)->toDateString() : null;
+
+        $visibleLinks = $since
+            ? $getState()->filter(fn ($link) => $link->link_histories->where('date', '>=', $since)->isEmpty())
+            : $getState();
+    @endphp
+
     {{-- One row per link --}}
-    @foreach ($getState() as $link)
+    @foreach ($visibleLinks as $link)
         @php
             $storeRate = $link->store->currency->rate ?: 1;
             $factor  = $userRate / $storeRate;
@@ -29,7 +38,7 @@
 
         @endphp
 
-        <div class="grid grid-cols-3 md:grid-cols-4 gap-4 text-xs hover:opacity-80 ">
+        <div class="grid grid-cols-3 md:grid-cols-4 gap-4 md:gap-2 text-xs md:text-sm hover:opacity-80 ">
             <div class="col-span-full md:col-span-1">
                 <a href="{{ LinkHelper::get_url($link) }}"
                    target="_blank"
