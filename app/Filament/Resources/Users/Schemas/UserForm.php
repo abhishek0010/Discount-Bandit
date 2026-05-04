@@ -41,6 +41,15 @@ class UserForm
                     ->showAllValidationMessages()
                     ->validationAttribute(__('filament-panels::auth/pages/register.form.password.validation_attribute')),
 
+                Select::make('role')
+                    ->options(RoleEnum::class)
+                    ->default(RoleEnum::User->value)
+                    ->required()
+                    ->preload()
+                    ->native(false)
+                    ->visible(fn () => Auth::user()->role === RoleEnum::Admin)
+                    ->dehydrated(fn () => Auth::user()->role === RoleEnum::Admin),
+
                 Section::make('Notification Settings')
                     ->columns(3)
                     ->columnSpanFull()

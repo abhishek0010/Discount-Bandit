@@ -49,6 +49,7 @@ class User extends Authenticatable implements FilamentUser
         'other_settings',
         'other_settings.max_links',
         'currency_id',
+        'role',
     ];
 
     /**
