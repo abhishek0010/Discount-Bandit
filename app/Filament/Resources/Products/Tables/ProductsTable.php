@@ -3,7 +3,6 @@
 namespace App\Filament\Resources\Products\Tables;
 
 use App\Enums\ProductStatusEnum;
-use App\Helpers\LinkHelper;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -14,13 +13,12 @@ use Filament\Tables\Columns\Layout\Grid;
 use Filament\Tables\Columns\Layout\Panel;
 use Filament\Tables\Columns\Layout\Stack;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\ViewColumn;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\HtmlString;
-use Illuminate\Support\Number;
 
 class ProductsTable
 {
@@ -99,73 +97,9 @@ class ProductsTable
                         Stack::make([
 
                             Panel::make([
-                                Grid::make([
-                                    'lg' => 8,
-                                    'sm' => 1,
-                                ])->schema([
-                                    TextColumn::make('links')
-                                        ->color('primary')
-                                        ->formatStateUsing(function ($state) {
-                                            $link = LinkHelper::get_url($state);
-
-                                            return new HtmlString("<a class='underline text-primary-400' href='{$link}' target='_blank'>{$state->store->name}</a>");
-                                        })
-                                        ->columnSpan([
-                                            'md' => 2,
-                                            'sm' => 7,
-                                        ])
-                                        ->html()
-                                        ->listWithLineBreaks(),
-
-                                    TextColumn::make('links')
-                                        ->formatStateUsing(function ($state) {
-                                            $price = $state->highest_price;
-                                            if (Auth::user()->currency_id && Auth::user()->currency->rate) {
-                                                $price = $price * Auth::user()->currency->rate / $state->store->currency->rate;
-                                            }
-
-                                            return Number::format($price);
-                                        })
-                                        ->listWithLineBreaks()
-                                        ->columnSpan([
-                                            'md' => 2,
-                                            'sm' => 7,
-                                        ])
-                                        ->color('danger'),
-
-                                    TextColumn::make('links')
-                                        ->formatStateUsing(function ($state) {
-                                            $price = $state->price;
-                                            $code = $state->store->currency->code;
-                                            if (Auth::user()->currency_id && Auth::user()->currency->rate) {
-                                                $price = $price * Auth::user()->currency->rate / $state->store->currency->rate;
-                                                $code = Auth::user()->currency->code;
-                                            }
-                                            return Number::currency($price, $code);
-
-                                        })
-                                        ->columnSpan([
-                                            'md' => 2,
-                                            'sm' => 2,
-                                        ])
-                                        ->listWithLineBreaks(),
-
-                                    TextColumn::make('links')
-                                        ->columnSpan([
-                                            'md' => 2,
-                                            'sm' => 2,
-                                        ])
-                                        ->listWithLineBreaks()
-                                        ->color('success')
-                                        ->formatStateUsing(function ($state) {
-                                            $price = $state->lowest_price;
-                                            if (Auth::user()->currency_id && Auth::user()->currency->rate) {
-                                                $price = $price * Auth::user()->currency->rate / $state->store->currency->rate;
-                                            }
-                                            return Number::format($price);
-                                        }),
-
-                                ]),
+                                ViewColumn::make('links')
+                                    ->view('filament.tables.columns.link-prices')
+                                    ->columnSpanFull(),
                             ])
                                 ->columnSpanFull(),
 
