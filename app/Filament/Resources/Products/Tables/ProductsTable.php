@@ -3,10 +3,13 @@
 namespace App\Filament\Resources\Products\Tables;
 
 use App\Enums\ProductStatusEnum;
+use App\Http\Controllers\Actions\FetchAllLinksForProductAction;
+use Filament\Actions\BulkAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Forms\Components\TextInput;
+use Filament\Notifications\Notification;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\ImageColumn;
@@ -62,7 +65,7 @@ class ProductsTable
 
                                 TextColumn::make('name')
                                     ->default("Fetching....")
-                                    ->columnSpan(4)
+                                    ->columnSpan(3)
                                     ->alignCenter()
                                     ->searchable()
                                     ->words(10)
@@ -77,6 +80,21 @@ class ProductsTable
                                     ->verticallyAlignCenter()
                                     ->alignEnd()
                                     ->badge(),
+
+                                IconColumn::make('refresh')
+                                    ->getStateUsing(fn () => true)
+                                    ->columnSpan(1)
+                                    ->alignEnd()
+                                    ->tooltip('Refresh All Links')
+                                    ->icon(Heroicon::ArrowPath)
+                                    ->color('success')
+                                    ->action(function ($record) {
+                                        (new FetchAllLinksForProductAction)->__invoke($record);
+                                        Notification::make()
+                                            ->title('All links sent to crawler')
+                                            ->success()
+                                            ->send();
+                                    }),
 
                                 IconColumn::make('delete')
                                     ->getStateUsing(fn () => true)
@@ -168,6 +186,17 @@ class ProductsTable
             ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
+                    BulkAction::make('refresh_all_links')
+                        ->label('Refresh All Links')
+                        ->icon(Heroicon::ArrowPath)
+                        ->color('success')
+                        ->action(function ($records) {
+                            $records->each(fn ($product) => (new FetchAllLinksForProductAction)->__invoke($product));
+                            Notification::make()
+                                ->title('All links sent to crawler')
+                                ->success()
+                                ->send();
+                        }),
                 ]),
             ]);
     }
