@@ -24,6 +24,8 @@ class PriceHistoryChart extends ApexChartWidget
 
     protected int|string|array $columnSpan = 'full';
 
+    protected ?string $pollingInterval = "600s";
+
     /**
      * Chart Id
      */
